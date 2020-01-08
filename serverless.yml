@@ -17,8 +17,11 @@ provider:
   region: us-east-1
 
 
+  # These environment variables are made available to our functions
+  # under process.env.
 environment:
-  tableName: notes 
+  tableName: notes
+  stripeSecretKey: ${env:STRIPE_SECRET_KEY}
 
   # IAM roles permissions for Lambda function (In this accessing DynamoDB)
 
@@ -88,3 +91,20 @@ functions:
           method: delete
           cors: true
           authorizer: aws_iam
+      
+  billing:
+    # Defines an HTTP API endpoint that calls the main function in billing.js
+    # - path: url path is /billing
+    # - method: POST request
+    handler: billing.main
+    events:
+      - http:
+          path: billing
+          method: post
+          cors: true
+          authorizer: aws_iam
+
+# Create our resources with separate CloudFormation templates
+resources:
+  # API Gateway Errors
+  - ${file(resources/api-gateway-errors.yml)}
